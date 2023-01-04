@@ -12,7 +12,7 @@ class Pacman {
         setInterval(() => {
            this.changeAnimation() 
         }, 100)
-
+ // test
     }
 
     moveProcess () {
