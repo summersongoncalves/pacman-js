@@ -11,8 +11,7 @@ class Pacman {
         this.frameCount = 7
         setInterval(() => {
            this.changeAnimation() 
-        }, 100)
- // test
+        }, 100) 
     }
 
     moveProcess () {
@@ -24,8 +23,20 @@ class Pacman {
     }
 
     eat () {
+        for (let i = 0; i < map.length; i ++) {                               
+            for(let j = 0; j < map[0].length; j++)   {      
+              if(map[i][j] == 0 && 
+                this.getMapX() == j &&
+                this.getMapY() == i) { 
+                  map[i][j] = 3
+                  score ++
+              }
+            }
+          }
+          console.log('pontuação', score)
 
     }
+
     moveBackwards () {
         switch(this.direction) {
             case DIRECTION_RIGHT: 
@@ -42,6 +53,7 @@ class Pacman {
             break;
         }
     }
+
     moveFowards () {
         switch( this.direction) {
             case DIRECTION_RIGHT: 
@@ -75,6 +87,7 @@ class Pacman {
     checkGhostCollision () {
 
     }
+
     changeDirectionIfPossible () {
         if(this.direction == this.nextDirection) return
 
@@ -123,7 +136,7 @@ class Pacman {
             this.y,
             this.width,
             this.height
-            );  
+            ); 
         
         canvasContext.restore()   // ????     
     }

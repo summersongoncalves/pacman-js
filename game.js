@@ -1,8 +1,16 @@
+/// Load custom font
+var emulogic = new FontFace('emulogic', 'url(assets/emulogic.ttf)');
+emulogic.load().then( () => {
+   document.fonts.add(emulogic)
+})
+
+//44:55 last
 const BORDER_WALL_WIDTH = 1.5
 const canvas = document.getElementById("canvas")
 const canvasContext = canvas.getContext("2d")
 const pacmanFrames = document.getElementById("animation")
 const ghostFrames = document.getElementById("ghosts")
+const GHOST_LIMIT_SPAWN = 4
 
 let createRect = (x, y, width, heigth, color) => {
     canvasContext.fillStyle = color
@@ -11,22 +19,33 @@ let createRect = (x, y, width, heigth, color) => {
 //30:00
 let fps = 30
 let oneBlockSize = 20
-let wallColor = "#342dCA"
+let wallColor = "#DEAC87"//"#342dCA"
 let wallSpaceWidth = oneBlockSize / BORDER_WALL_WIDTH
 let wallOffset = (oneBlockSize - wallSpaceWidth) / 2
 let wallInnerColor = "#000"
-
-
-//RIGHT  RIGTH
+let foodColor = "#F02011"//"#FEB"
+let score = 0
+let ghosts = []
 
 const DIRECTION_RIGHT = 4
 const DIRETCION_UP = 3
 const DIRECTION_LEFT = 2
 const DIRECTION_BOTTOM = 1 
-/**
+
+/// positions of ghosts in ghost.png
+let ghostLocations = [
+    {x:0,y:0},
+    {x:176,y:0},
+    {x:0,y:121},
+    {x:176,y:121},
+]
+
+
+/*-----------------------------
  * 1 => wall
- * 0 => walk
- */
+ * 0 => can walk
+ * 2 => outside
+ -----------------------------*/
 let map = [ 
     [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,1],//23    
     [1,0,0,0,0, 0,0,0,0,0, 1,0,0,0,0, 0,0,0,0,0,1],//22
@@ -36,12 +55,12 @@ let map = [
     [1,0,1,1,1, 0,1,0,1,1, 1,1,1,0,1, 0,1,1,1,0,1],//18   
     [1,0,0,0,0, 0,1,0,0,0, 1,0,0,0,1, 0,0,0,0,0,1],//17
     [1,1,1,1,1, 0,1,1,1,0, 1,0,1,1,1, 0,1,1,1,1,1],//16
-    [0,0,0,0,1, 0,1,0,0,0, 0,0,0,0,1, 0,1,0,0,0,2],//15
+    [2,2,2,2,1, 0,1,0,0,0, 0,0,0,0,1, 0,1,2,2,2,2],//15
     [1,1,1,1,1, 0,1,0,1,1, 0,1,1,0,1, 0,1,1,1,1,1],//14
-    [0,0,0,0,0, 0,1,0,1,0, 0,0,1,0,1, 0,0,0,0,0,2],//13
+    [0,0,0,0,0, 0,1,0,1,0, 0,0,1,0,1, 0,0,0,0,0,0],//13
     [1,1,1,1,1, 0,1,0,1,0, 0,0,1,0,1, 0,1,1,1,1,1],//12
-    [0,0,0,0,1, 0,1,0,1,1, 1,1,1,0,1, 0,1,0,0,0,2],//11
-    [0,0,0,0,1, 0,1,0,0,0, 0,0,0,0,1, 0,1,0,0,0,2],//10
+    [2,2,2,2,1, 0,1,0,1,1, 1,1,1,0,1, 0,1,2,2,2,2],//11
+    [2,2,2,2,1, 0,1,0,0,0, 0,0,0,0,1, 0,1,2,2,2,2],//10
     [1,1,1,1,1, 0,0,0,1,1, 1,1,1,0,0, 0,1,1,1,1,1],//9
     [1,0,0,0,0, 0,0,0,0,0, 1,0,0,0,0, 0,0,0,0,0,1],//8    
     [1,0,1,1,1, 0,1,1,1,0, 1,0,1,1,1, 0,1,1,1,0,1],//7
@@ -59,16 +78,49 @@ let gameLoop = () => {
     draw()
 }
 
-let update = () => {
-    //TODO    
+let update = () => {      
     pacman.moveProcess()
+    pacman.eat()    
+}
+let drawFoods = () => {       
+    for (let i = 0; i < map.length; i ++) {                               
+      for(let j = 0; j < map[0].length; j++)   {      
+        if(map[i][j] == 0) {  // create food only in path pacman can walk            
+            createRect(
+                j * oneBlockSize + oneBlockSize / 3,
+                i * oneBlockSize + oneBlockSize / 3,
+                oneBlockSize / 5,
+                oneBlockSize / 5,
+                foodColor
+            )
+        }
+      }
+    }
+}
+
+let drawScore = () => {
+    canvasContext.font = "bold 20px Emulogic"
+    canvasContext.fillStyle = "white"
+    canvasContext.fillText("Score: " + score, 
+        5, 
+        oneBlockSize * (map.length + 1) + 10
+    )
+    
+}
+
+let drawGhosts = () => {
+    for (let i = 0; i< ghosts.length; i++) {
+        ghosts[i].draw()        
+    }
 }
 
 let draw = () => {   
-    createRect(0, 0, canvas.width, canvas.height, "#000") // workaround to do not show multiples pacmans
-    //TODO
+    createRect(0, 0, canvas.width, canvas.height, "#000") // workaround to do not show multiples pacmans    
     drawWalls()    
+    drawFoods()
     pacman.draw()
+    drawScore()
+    drawGhosts()
 }
 
 let gameInterval = setInterval(gameLoop, 1000 / fps); 
@@ -133,9 +185,33 @@ let createNewPacman = () => {
         oneBlockSize / 5)
 } 
 
+let createGhosts = () => {
+    ghosts = []
+    for (let i = 0; i < GHOST_LIMIT_SPAWN; i++ ) {
+        let newGhost = new Ghost( 9 * oneBlockSize + (i % 2 == 0 ? 0 : 1) * oneBlockSize,
+                                  10 * oneBlockSize + (i%2 == 0 ? 0 : 1) * oneBlockSize,
+                                  oneBlockSize,
+                                  oneBlockSize,
+                                  pacman.speed / 2,
+                                  ghostLocations[i % 4].x,
+                                  ghostLocations[i % 4].y,
+                                  124,
+                                  116, 
+                                  6+i
+                                  )
+            ghosts.push(newGhost)
+    }
+}
+//------------------------- START MAIN ------------------
 createNewPacman()
+createGhosts()
 gameLoop()
-//https://keyjs.dev/
+//----------------------------------------------------
+
+/**
+ * Configure keys
+ * //https://keyjs.dev/
+ */
 window.addEventListener("keydown", (event) => {
     let k = event.keyCode
     setTimeout(() => {
