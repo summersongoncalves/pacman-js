@@ -33,7 +33,7 @@ class Pacman {
               }
             }
           }
-          console.log('pontuação', score)
+          //console.log('pontuação', score)
 
     }
 
@@ -85,7 +85,18 @@ class Pacman {
     }
 
     checkGhostCollision () {
-
+    try {
+        for (let i = 0; i < ghosts.length; i++) {
+            let ghost = ghost[i]
+            if(ghost.getMapX() == this.getMapX() && ghost.getMapY() == this.getMapY()) {
+                return true
+            }
+        }
+    } catch (error) {
+        console.log('deu ruim', error)
+    }
+        
+        return false
     }
 
     changeDirectionIfPossible () {

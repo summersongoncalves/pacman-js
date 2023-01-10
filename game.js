@@ -16,7 +16,6 @@ let createRect = (x, y, width, heigth, color) => {
     canvasContext.fillStyle = color
     canvasContext.fillRect(x, y, width, heigth)    
 }
-//30:00
 let fps = 30
 let oneBlockSize = 20
 let wallColor = "#DEAC87"//"#342dCA"
@@ -39,6 +38,7 @@ let ghostLocations = [
     {x:0,y:121},
     {x:176,y:121},
 ]
+
 
 
 /*-----------------------------
@@ -71,8 +71,17 @@ let map = [
     [1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,1],//2 
     [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,1],//1
 ]
+// set this after map for reference use
+let randomTargetsForGhosts = [
+    {x:1 * oneBlockSize, y: 1 * oneBlockSize },
+    {x:1 * oneBlockSize, y: (map.length - 2) * oneBlockSize },
+    {x:1 * (map[0].length -2) * oneBlockSize, y: oneBlockSize },
+    {
+        x:(map[0].length -2 ) * oneBlockSize, 
+        y: (map.length - 2) * oneBlockSize 
+    }
 
-
+] 
 let gameLoop = () => {
     update ()
     draw()
@@ -80,7 +89,13 @@ let gameLoop = () => {
 
 let update = () => {      
     pacman.moveProcess()
-    pacman.eat()    
+    pacman.eat() 
+    for (let i = 0; i < ghosts.length; i++) {
+        ghosts[i].moveProcess()
+    }
+    if(pacman.checkGhostCollision()) {
+        console.log('bvatey')
+    }
 }
 let drawFoods = () => {       
     for (let i = 0; i < map.length; i ++) {                               
@@ -191,7 +206,7 @@ let createGhosts = () => {
         let newGhost = new Ghost( 9 * oneBlockSize + (i % 2 == 0 ? 0 : 1) * oneBlockSize,
                                   10 * oneBlockSize + (i%2 == 0 ? 0 : 1) * oneBlockSize,
                                   oneBlockSize,
-                                  oneBlockSize,
+                                  oneBlockSize,  
                                   pacman.speed / 2,
                                   ghostLocations[i % 4].x,
                                   ghostLocations[i % 4].y,
