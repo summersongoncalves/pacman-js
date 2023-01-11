@@ -1,4 +1,5 @@
 class Ghost {
+    debugMode = false
     constructor(x, y, width, height, speed, imageX, imageY, imageWidth, imageHeight, range) {
         this.x = x
         this.y = y
@@ -103,11 +104,9 @@ class Ghost {
             return true    
         }
         else return false
-
     }
-
+    
     checkGhostCollision () {
-      
     }
 
     changeDirectionIfPossible () {  
@@ -131,6 +130,7 @@ class Ghost {
             this.moveBackwards()
         }
     }
+
     /* Dijkstra's algorithm 
     https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm*/
     calculateNewDirection (map, destX, destY) {
@@ -158,6 +158,7 @@ class Ghost {
         }   
         return DIRETCION_UP // default        
     }
+
     addNeighbors(poped, mp) {
         let queue = []
         let numOfRows = mp.length
@@ -205,8 +206,7 @@ class Ghost {
     }
 
     
-    draw () {                
-        
+    draw () {   
         canvasContext.save()                
         canvasContext.drawImage(
             ghostFrames,
@@ -221,6 +221,19 @@ class Ghost {
             ); 
         
         canvasContext.restore()    
+        if(this.debugMode) {
+             //Draw Range of ghosts     
+        canvasContext.beginPath()
+        canvasContext.strokeStyle='red'
+        canvasContext.arc(this.x  + oneBlockSize / 2,
+        this.y + oneBlockSize / 2,
+        this.range * oneBlockSize,
+        0,
+        2 * Math.PI)
+        canvasContext.stroke()
+        }
+        
+        
     }    
     getMapX () {
         return parseInt(this.x / oneBlockSize)

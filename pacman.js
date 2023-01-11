@@ -29,12 +29,10 @@ class Pacman {
                 this.getMapX() == j &&
                 this.getMapY() == i) { 
                   map[i][j] = 3
-                  score ++
+                  score ++                  
               }
             }
           }
-          //console.log('pontuação', score)
-
     }
 
     moveBackwards () {
@@ -84,18 +82,13 @@ class Pacman {
 
     }
 
-    checkGhostCollision () {
-    try {
+    checkGhostCollision () { 
         for (let i = 0; i < ghosts.length; i++) {
-            let ghost = ghost[i]
+            let ghost = ghosts[i]
             if(ghost.getMapX() == this.getMapX() && ghost.getMapY() == this.getMapY()) {
                 return true
             }
         }
-    } catch (error) {
-        console.log('deu ruim', error)
-    }
-        
         return false
     }
 

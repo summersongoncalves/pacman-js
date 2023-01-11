@@ -4,27 +4,30 @@ emulogic.load().then( () => {
    document.fonts.add(emulogic)
 })
 
-//44:55 last
 const BORDER_WALL_WIDTH = 1.5
-const canvas = document.getElementById("canvas")
-const canvasContext = canvas.getContext("2d")
-const pacmanFrames = document.getElementById("animation")
-const ghostFrames = document.getElementById("ghosts")
+const canvas            = document.getElementById("canvas")
+const canvasContext     = canvas.getContext("2d")
+const pacmanFrames      = document.getElementById("animation")
+const ghostFrames       = document.getElementById("ghosts")
 const GHOST_LIMIT_SPAWN = 4
+const LIVES_TO_START    = 3
 
 let createRect = (x, y, width, heigth, color) => {
     canvasContext.fillStyle = color
     canvasContext.fillRect(x, y, width, heigth)    
 }
+
 let fps = 30
 let oneBlockSize = 20
-let wallColor = "#DEAC87"//"#342dCA"
+let wallColor = "#DEAC87"
 let wallSpaceWidth = oneBlockSize / BORDER_WALL_WIDTH
 let wallOffset = (oneBlockSize - wallSpaceWidth) / 2
 let wallInnerColor = "#000"
-let foodColor = "#F02011"//"#FEB"
+let foodColor = "#F02011"
 let score = 0
 let ghosts = []
+let lives = 1
+let foodCount = 0
 
 const DIRECTION_RIGHT = 4
 const DIRETCION_UP = 3
@@ -33,13 +36,11 @@ const DIRECTION_BOTTOM = 1
 
 /// positions of ghosts in ghost.png
 let ghostLocations = [
-    {x:0,y:0},
-    {x:176,y:0},
-    {x:0,y:121},
-    {x:176,y:121},
+    { x:0,   y:0 },
+    { x:176, y:0},
+    { x:0,   y:121},
+    { x:176, y:121},
 ]
-
-
 
 /*-----------------------------
  * 1 => wall
@@ -71,6 +72,17 @@ let map = [
     [1,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0, 0,0,0,0,0,1],//2 
     [1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1, 1,1,1,1,1,1],//1
 ]
+
+let createTotalFood = () => {
+    for (let i = 0; i < map.length; i ++) {                               
+        for(let j = 0; j < map[0].length; j++)   {      
+          if(map[i][j] == 0) {  
+              foodCount ++ // IMPORTANT TO COUNT FOOD
+          }
+        }
+      }
+}
+
 // set this after map for reference use
 let randomTargetsForGhosts = [
     {x:1 * oneBlockSize, y: 1 * oneBlockSize },
@@ -81,22 +93,79 @@ let randomTargetsForGhosts = [
         y: (map.length - 2) * oneBlockSize 
     }
 
-] 
+]  
 let gameLoop = () => {
+    draw() // draw before - becouse 
     update ()
-    draw()
 }
 
-let update = () => {      
+let update = () => { 
+    console.log(foodCount)     
     pacman.moveProcess()
     pacman.eat() 
     for (let i = 0; i < ghosts.length; i++) {
         ghosts[i].moveProcess()
     }
     if(pacman.checkGhostCollision()) {
-        console.log('bvatey')
+        console.log('pegou')
+        restartGame()
+    }
+    if(score >= foodCount) {
+        drawWin()
+        clearInterval(gameInterval)
+    }
+} 
+
+let drawWin = () => {
+    canvasContext.font ="20px Emulogic"
+    canvasContext.fillStyle = "white"
+    canvasContext.fillText("You Win!!",120, 230)
+}
+
+let restartGame = () => {
+    createNewPacman()
+    createGhosts()
+    lives--
+    if(lives == 0) {
+        gameOver()
     }
 }
+
+let gameOver = () =>{
+    clearInterval(gameInterval)
+    drawGameOver()
+}
+
+let drawGameOver = () => {    
+    canvasContext.font ="20px Emulogic"
+    canvasContext.fillStyle = "white"
+    canvasContext.fillText("Game Over",120, 230)
+    canvasContext.fillText("Press ENTER to restart",10, 280)
+}
+
+let drawLives = () => {
+    // draw text
+    canvasContext.font ="20px Emulogic"
+    canvasContext.fillStyle = "white"
+    canvasContext.fillText("Lives: ", 220, oneBlockSize * (map.length + 1.5))
+
+    //draw live as images
+    for (let i = 0; i < lives; i++) {
+        canvasContext.drawImage(pacmanFrames,
+             2 * oneBlockSize,
+             0, 
+             oneBlockSize,
+             oneBlockSize,
+             350 +  i * oneBlockSize,
+             oneBlockSize * map.length + 10,
+             oneBlockSize,
+             oneBlockSize);
+        
+        
+    }
+
+}
+
 let drawFoods = () => {       
     for (let i = 0; i < map.length; i ++) {                               
       for(let j = 0; j < map[0].length; j++)   {      
@@ -110,7 +179,7 @@ let drawFoods = () => {
             )
         }
       }
-    }
+    }   
 }
 
 let drawScore = () => {
@@ -136,6 +205,7 @@ let draw = () => {
     pacman.draw()
     drawScore()
     drawGhosts()
+    drawLives()
 }
 
 let gameInterval = setInterval(gameLoop, 1000 / fps); 
@@ -217,18 +287,35 @@ let createGhosts = () => {
             ghosts.push(newGhost)
     }
 }
+let getDefaultLifesToStart = () => {
+     return LIVES_TO_START
+}
+
+let resetScore = () => {
+    score = 0
+}
+
+let startGame = () => {
+    lives = getDefaultLifesToStart()
+    createNewPacman()
+    createGhosts()
+    createTotalFood()
+    gameLoop()
+}
+
 //------------------------- START MAIN ------------------
-createNewPacman()
-createGhosts()
-gameLoop()
+startGame()
 //----------------------------------------------------
+
 
 /**
  * Configure keys
  * //https://keyjs.dev/
  */
+
 window.addEventListener("keydown", (event) => {
     let k = event.keyCode
+    console.log(k)
     setTimeout(() => {
         if(k == 37 || k == 65) { //left
             pacman.nextDirection = DIRECTION_LEFT
@@ -239,5 +326,12 @@ window.addEventListener("keydown", (event) => {
         } else if(k == 40 || k == 83) { //bottom
             pacman.nextDirection = DIRECTION_BOTTOM
         } 
+        // restart game 
+        if(lives == 0 && k == 13) {
+            resetScore()
+            drawFoods()
+            startGame()
+            gameInterval = setInterval(gameLoop, 1000 / fps); 
+        }
     }, 1);
 })
