@@ -6,5 +6,5 @@
 
   ![image](https://github.com/summersongoncalves/pacman-js/assets/9466450/6cfb0d72-5ba4-4925-bacb-9ac0d3b4c398)
 
-credits : [Servet Gulnaroglu](https://www.youtube.com/watch?v=GXlckaGr0Eo)
+Followed tutorial from: [Servet Gulnaroglu](https://www.youtube.com/watch?v=GXlckaGr0Eo)
 
